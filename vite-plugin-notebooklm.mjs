@@ -158,7 +158,18 @@ export function notebooklmBridge() {
 
           if (route === '/login' && req.method === 'POST') {
             // Bloqueia até o usuário concluir o OAuth no Chromium que o CLI abre.
-            await runCli(['login'], { timeout: LOGIN_TIMEOUT_MS });
+            //
+            // O perfil persistente do Chromium (browser_profile/) às vezes fica
+            // corrompido/preso de uma sessão anterior — o login então falha com
+            // "The browser window was closed during login" (exit 1). Nesse caso
+            // repetimos com `--fresh`, que descarta o perfil e abre uma sessão
+            // limpa. Erros de timeout/ENOENT não são recuperáveis aqui e sobem.
+            try {
+              await runCli(['login'], { timeout: LOGIN_TIMEOUT_MS });
+            } catch (e) {
+              if (e.code !== 'ECLI') throw e; // timeout/ENOENT: deixa o catch geral tratar
+              await runCli(['login', '--fresh'], { timeout: LOGIN_TIMEOUT_MS });
+            }
             return sendJSON(res, 200, { ok: true });
           }
 
