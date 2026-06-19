@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { BlockData, useBEPStore } from '../../store/bepStore';
 import { validateInfrastructure } from '../../lib/gemini';
-import { Loader2, AlertTriangle, CheckCircle, Plus, Trash2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Plus, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { AiSuggestionButton } from '../ui/AiSuggestionButton';
+import { Button } from '../ui/Button';
+import { IconButton } from '../ui/IconButton';
+import { TableTextField } from '../ui/TableField';
 
 interface Props {
   block: BlockData;
@@ -112,65 +115,62 @@ export function InfraBlock({ block }: Props) {
               onSuggest={handleSoftwareSuggest}
               json={true}
             />
-            <button onClick={addSoftware} className="text-xs flex items-center gap-1 bg-orange-50 text-orange-700 px-3 py-1.5 rounded-md hover:bg-orange-100">
-              <Plus className="w-3 h-3" /> Adicionar Ferramenta
-            </button>
+            <Button variant="accent" size="sm" onClick={addSoftware} icon={<Plus className="w-3.5 h-3.5" />}>
+              Adicionar Ferramenta
+            </Button>
           </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left text-slate-600 border border-slate-200 rounded-lg">
+            <caption className="sr-only">Tabela 6 - Ferramentas utilizadas no projeto</caption>
             <thead className="bg-slate-50 text-xs uppercase text-slate-500 font-semibold">
               <tr>
-                <th className="px-4 py-3 border-b">Uso BIM</th>
-                <th className="px-4 py-3 border-b">Plataforma / Ferramenta</th>
-                <th className="px-4 py-3 border-b">Versão</th>
-                <th className="px-4 py-3 border-b">Extensão</th>
-                <th className="px-4 py-3 border-b w-10"></th>
+                <th scope="col" className="px-4 py-3 border-b">Uso BIM</th>
+                <th scope="col" className="px-4 py-3 border-b">Plataforma / Ferramenta</th>
+                <th scope="col" className="px-4 py-3 border-b">Versão</th>
+                <th scope="col" className="px-4 py-3 border-b">Extensão</th>
+                <th scope="col" className="px-4 py-3 border-b w-10 text-center">Ações</th>
               </tr>
             </thead>
             <tbody>
               {softwareTools.map((row: any, index: number) => (
                 <tr key={index} className="border-b last:border-0 hover:bg-slate-50/50">
                   <td className="px-4 py-2">
-                    <input
-                      type="text"
+                    <TableTextField
                       value={row.use}
                       onChange={(e) => updateSoftware(index, 'use', e.target.value)}
-                      className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                       placeholder="Uso..."
+                      aria-label={`Uso BIM da ferramenta linha ${index + 1}`}
                     />
                   </td>
                   <td className="px-4 py-2">
-                    <input
-                      type="text"
+                    <TableTextField
                       value={row.platform}
                       onChange={(e) => updateSoftware(index, 'platform', e.target.value)}
-                      className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                       placeholder="Software..."
+                      aria-label={`Plataforma / Ferramenta linha ${index + 1}`}
                     />
                   </td>
                   <td className="px-4 py-2">
-                    <input
-                      type="text"
+                    <TableTextField
                       value={row.version}
                       onChange={(e) => updateSoftware(index, 'version', e.target.value)}
-                      className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                       placeholder="2024..."
+                      aria-label={`Versão linha ${index + 1}`}
                     />
                   </td>
                   <td className="px-4 py-2">
-                    <input
-                      type="text"
+                    <TableTextField
                       value={row.extension}
                       onChange={(e) => updateSoftware(index, 'extension', e.target.value)}
-                      className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                       placeholder=".rvt..."
+                      aria-label={`Extensão linha ${index + 1}`}
                     />
                   </td>
                   <td className="px-4 py-2 text-center">
-                    <button onClick={() => removeSoftware(index)} className="text-slate-400 hover:text-red-500">
+                    <IconButton variant="danger" onClick={() => removeSoftware(index)} aria-label={`Remover linha ${index + 1}`}>
                       <Trash2 className="w-4 h-4" />
-                    </button>
+                    </IconButton>
                   </td>
                 </tr>
               ))}
@@ -189,85 +189,80 @@ export function InfraBlock({ block }: Props) {
               onSuggest={handleHardwareSuggest}
               json={true}
             />
-            <button onClick={addHardware} className="text-xs flex items-center gap-1 bg-orange-50 text-orange-700 px-3 py-1.5 rounded-md hover:bg-orange-100">
-              <Plus className="w-3 h-3" /> Adicionar Hardware
-            </button>
+            <Button variant="accent" size="sm" onClick={addHardware} icon={<Plus className="w-3.5 h-3.5" />}>
+              Adicionar Hardware
+            </Button>
           </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left text-slate-600 border border-slate-200 rounded-lg">
+            <caption className="sr-only">Tabela 7 - Equipamentos utilizados (Hardware)</caption>
             <thead className="bg-slate-50 text-xs uppercase text-slate-500 font-semibold">
               <tr>
-                <th className="px-4 py-3 border-b">Propósito</th>
-                <th className="px-4 py-3 border-b">CPU</th>
-                <th className="px-4 py-3 border-b">RAM</th>
-                <th className="px-4 py-3 border-b">Vídeo</th>
-                <th className="px-4 py-3 border-b">OS</th>
-                <th className="px-4 py-3 border-b">HD</th>
-                <th className="px-4 py-3 border-b w-10"></th>
+                <th scope="col" className="px-4 py-3 border-b">Propósito</th>
+                <th scope="col" className="px-4 py-3 border-b">CPU</th>
+                <th scope="col" className="px-4 py-3 border-b">RAM</th>
+                <th scope="col" className="px-4 py-3 border-b">Vídeo</th>
+                <th scope="col" className="px-4 py-3 border-b">OS</th>
+                <th scope="col" className="px-4 py-3 border-b">HD</th>
+                <th scope="col" className="px-4 py-3 border-b w-10 text-center">Ações</th>
               </tr>
             </thead>
             <tbody>
               {hardwareReqs.map((row: any, index: number) => (
                 <tr key={index} className="border-b last:border-0 hover:bg-slate-50/50">
                   <td className="px-4 py-2">
-                    <input
-                      type="text"
+                    <TableTextField
                       value={row.purpose}
                       onChange={(e) => updateHardware(index, 'purpose', e.target.value)}
-                      className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                       placeholder="Propósito..."
+                      aria-label={`Propósito do hardware linha ${index + 1}`}
                     />
                   </td>
                   <td className="px-4 py-2">
-                    <input
-                      type="text"
+                    <TableTextField
                       value={row.cpu}
                       onChange={(e) => updateHardware(index, 'cpu', e.target.value)}
-                      className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                       placeholder="i7..."
+                      aria-label={`CPU linha ${index + 1}`}
                     />
                   </td>
                   <td className="px-4 py-2">
-                    <input
-                      type="text"
+                    <TableTextField
                       value={row.ram}
                       onChange={(e) => updateHardware(index, 'ram', e.target.value)}
-                      className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                       placeholder="16GB..."
+                      aria-label={`RAM linha ${index + 1}`}
                     />
                   </td>
                   <td className="px-4 py-2">
-                    <input
-                      type="text"
+                    <TableTextField
                       value={row.gpu}
                       onChange={(e) => updateHardware(index, 'gpu', e.target.value)}
-                      className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                       placeholder="RTX..."
+                      aria-label={`Vídeo linha ${index + 1}`}
                     />
                   </td>
                   <td className="px-4 py-2">
-                    <input
-                      type="text"
+                    <TableTextField
                       value={row.os}
                       onChange={(e) => updateHardware(index, 'os', e.target.value)}
-                      className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                       placeholder="Win 10..."
+                      aria-label={`OS linha ${index + 1}`}
                     />
                   </td>
                   <td className="px-4 py-2">
-                    <input
-                      type="text"
+                    <TableTextField
                       value={row.hd}
                       onChange={(e) => updateHardware(index, 'hd', e.target.value)}
-                      className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                       placeholder="SSD..."
+                      aria-label={`HD linha ${index + 1}`}
                     />
                   </td>
                   <td className="px-4 py-2 text-center">
-                    <button onClick={() => removeHardware(index)} className="text-slate-400 hover:text-red-500">
+                    <IconButton variant="danger" onClick={() => removeHardware(index)} aria-label={`Remover linha ${index + 1}`}>
                       <Trash2 className="w-4 h-4" />
-                    </button>
+                    </IconButton>
                   </td>
                 </tr>
               ))}
@@ -277,17 +272,14 @@ export function InfraBlock({ block }: Props) {
       </div>
 
       <div className="flex justify-end pt-4 border-t">
-        <button
-          onClick={handleValidate}
-          disabled={loading}
-          className="px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors flex items-center gap-2"
-        >
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Validar Compatibilidade (IA)"}
-        </button>
+        <Button variant="primary" onClick={handleValidate} loading={loading}>
+          Validar Compatibilidade (IA)
+        </Button>
       </div>
 
       {validation && (
         <motion.div
+          role="status"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className={`p-4 rounded-xl border ${

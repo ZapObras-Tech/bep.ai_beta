@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { BlockData, useBEPStore } from '../../store/bepStore';
 import { extractTextFromPDF } from '../../lib/pdf';
 import { askISO } from '../../lib/gemini';
-import { Loader2, Upload, BookOpen, MessageSquare, Send, CheckCircle2 } from 'lucide-react';
+import { Upload, BookOpen, MessageSquare, Send, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Button } from '../ui/Button';
 
 interface Props {
   block: BlockData;
@@ -73,6 +74,7 @@ export function ReferencesBlock({ block }: Props) {
             onChange={handleFileUpload}
             className="hidden"
             id="iso-upload"
+            aria-label="Enviar PDF da Norma"
           />
           <label
             htmlFor="iso-upload"
@@ -113,14 +115,16 @@ export function ReferencesBlock({ block }: Props) {
               placeholder="Ex: Qual o processo de entrega de informação segundo a ISO 19650?"
               className="flex-1 p-2 text-sm border border-orange-200 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
               onKeyDown={(e) => e.key === 'Enter' && handleAsk()}
+              aria-label="Pergunta sobre as normas carregadas"
             />
-            <button
+            <Button
+              variant="primary"
               onClick={handleAsk}
               disabled={asking || !question}
-              className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors"
-            >
-              {asking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-            </button>
+              loading={asking}
+              icon={<Send className="w-4 h-4" />}
+              aria-label="Enviar pergunta"
+            />
           </div>
 
           <AnimatePresence>

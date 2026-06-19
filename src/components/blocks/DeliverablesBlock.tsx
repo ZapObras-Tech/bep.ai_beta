@@ -2,6 +2,9 @@ import React from 'react';
 import { BlockData, useBEPStore } from '../../store/bepStore';
 import { Layers, Plus, Trash2 } from 'lucide-react';
 import { AiSuggestionButton } from '../ui/AiSuggestionButton';
+import { Button } from '../ui/Button';
+import { IconButton } from '../ui/IconButton';
+import { TableTextField } from '../ui/TableField';
 
 interface Props {
   block: BlockData;
@@ -20,14 +23,14 @@ export function DeliverablesBlock({ block }: Props) {
       formats: s.formats || '',
       responsible: s.responsible || ''
     }));
-    updateBlockContent(block.id, { 
-      deliverables: [...deliverables, ...newDeliverables] 
+    updateBlockContent(block.id, {
+      deliverables: [...deliverables, ...newDeliverables]
     });
   };
 
   const addRow = () => {
-    updateBlockContent(block.id, { 
-      deliverables: [...deliverables, { phase: '', discipline: '', deliverable: '', formats: '', responsible: '' }] 
+    updateBlockContent(block.id, {
+      deliverables: [...deliverables, { phase: '', discipline: '', deliverable: '', formats: '', responsible: '' }]
     });
   };
 
@@ -51,81 +54,77 @@ export function DeliverablesBlock({ block }: Props) {
           Matriz de Entregáveis
         </h3>
         <div className="flex gap-2">
-          <AiSuggestionButton 
+          <AiSuggestionButton
             prompt="Liste os principais entregáveis por fase e disciplina para este projeto, retornando um array de objetos JSON com as chaves: phase, discipline, deliverable, formats, responsible."
             onSuggest={handleAiSuggest}
             json={true}
           />
-          <button onClick={addRow} className="text-xs flex items-center gap-1 bg-orange-50 text-orange-700 px-3 py-1.5 rounded-md hover:bg-orange-100">
-            <Plus className="w-3 h-3" /> Adicionar Linha
-          </button>
+          <Button variant="accent" size="sm" onClick={addRow} icon={<Plus className="w-3.5 h-3.5" />}>
+            Adicionar Linha
+          </Button>
         </div>
       </div>
-      
+
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left text-slate-600 border border-slate-200 rounded-lg">
+          <caption className="sr-only">Matriz de entregáveis por fase, disciplina, formato e responsável</caption>
           <thead className="bg-slate-50 text-xs uppercase text-slate-500 font-semibold">
             <tr>
-              <th className="px-4 py-3 border-b">Fase</th>
-              <th className="px-4 py-3 border-b">Disciplina</th>
-              <th className="px-4 py-3 border-b">Entregável</th>
-              <th className="px-4 py-3 border-b">Formatos</th>
-              <th className="px-4 py-3 border-b">Responsável / Função</th>
-              <th className="px-4 py-3 border-b w-10"></th>
+              <th scope="col" className="px-4 py-3 border-b">Fase</th>
+              <th scope="col" className="px-4 py-3 border-b">Disciplina</th>
+              <th scope="col" className="px-4 py-3 border-b">Entregável</th>
+              <th scope="col" className="px-4 py-3 border-b">Formatos</th>
+              <th scope="col" className="px-4 py-3 border-b">Responsável / Função</th>
+              <th scope="col" className="px-4 py-3 border-b w-10 text-center">Ações</th>
             </tr>
           </thead>
           <tbody>
             {deliverables.map((row: any, index: number) => (
               <tr key={index} className="border-b last:border-0 hover:bg-slate-50/50">
                 <td className="px-4 py-2">
-                  <input
-                    type="text"
+                  <TableTextField
                     value={row.phase}
                     onChange={(e) => handleChange(index, 'phase', e.target.value)}
-                    className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                     placeholder="Fase..."
+                    aria-label={`Fase, linha ${index + 1}`}
                   />
                 </td>
                 <td className="px-4 py-2">
-                  <input
-                    type="text"
+                  <TableTextField
                     value={row.discipline}
                     onChange={(e) => handleChange(index, 'discipline', e.target.value)}
-                    className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                     placeholder="Disciplina..."
+                    aria-label={`Disciplina, linha ${index + 1}`}
                   />
                 </td>
                 <td className="px-4 py-2">
-                  <input
-                    type="text"
+                  <TableTextField
                     value={row.deliverable}
                     onChange={(e) => handleChange(index, 'deliverable', e.target.value)}
-                    className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                     placeholder="Entregável..."
+                    aria-label={`Entregável, linha ${index + 1}`}
                   />
                 </td>
                 <td className="px-4 py-2">
-                  <input
-                    type="text"
+                  <TableTextField
                     value={row.formats}
                     onChange={(e) => handleChange(index, 'formats', e.target.value)}
-                    className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                     placeholder=".ifc / .rvt..."
+                    aria-label={`Formatos, linha ${index + 1}`}
                   />
                 </td>
                 <td className="px-4 py-2">
-                  <input
-                    type="text"
+                  <TableTextField
                     value={row.responsible}
                     onChange={(e) => handleChange(index, 'responsible', e.target.value)}
-                    className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                     placeholder="Nome / Função..."
+                    aria-label={`Responsável / Função, linha ${index + 1}`}
                   />
                 </td>
                 <td className="px-4 py-2 text-center">
-                  <button onClick={() => removeRow(index)} className="text-slate-400 hover:text-red-500">
+                  <IconButton variant="danger" onClick={() => removeRow(index)} aria-label={`Remover linha ${index + 1}`}>
                     <Trash2 className="w-4 h-4" />
-                  </button>
+                  </IconButton>
                 </td>
               </tr>
             ))}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { refineText } from '../../lib/gemini';
-import { motion } from 'motion/react';
+import { IconButton } from './IconButton';
 
 interface Props {
   text: string;
@@ -26,19 +26,18 @@ export function RefineButton({ text, onRefine, className }: Props) {
   };
 
   return (
-    <motion.button
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
+    <IconButton
       onClick={handleRefine}
       disabled={loading || !text}
-      className={`p-1.5 text-orange-600 bg-orange-50 hover:bg-orange-100 rounded-md transition-colors disabled:opacity-50 ${className}`}
+      aria-label="Refinar texto para linguagem técnica (ISO 19650)"
       title="Refinar texto para linguagem técnica (ISO 19650)"
+      className={className}
     >
       {loading ? (
-        <Loader2 className="w-3 h-3 animate-spin" />
+        <Loader2 className="w-4 h-4 animate-spin text-orange-600" />
       ) : (
-        <Sparkles className="w-3 h-3" />
+        <Sparkles className="w-4 h-4 text-orange-600" />
       )}
-    </motion.button>
+    </IconButton>
   );
 }

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Sparkles, Loader2 } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { useBEPStore } from '../../store/bepStore';
 import { suggestContent } from '../../lib/gemini';
+import { Button } from './Button';
 
 interface Props {
   prompt: string;
@@ -56,18 +57,16 @@ export function AiSuggestionButton({ prompt, onSuggest, className, label = "Suge
   if (!ready) return null;
 
   return (
-    <button
+    <Button
+      variant="accent"
+      size="sm"
       onClick={handleSuggest}
-      disabled={loading}
-      className={`flex items-center gap-1.5 text-xs font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 px-2 py-1 rounded-md transition-colors ${className}`}
+      loading={loading}
+      icon={<Sparkles className="w-3.5 h-3.5" />}
+      className={className}
       title="Gerar sugestão com base no Edital/EIR"
     >
-      {loading ? (
-        <Loader2 className="w-3 h-3 animate-spin" />
-      ) : (
-        <Sparkles className="w-3 h-3" />
-      )}
       {label}
-    </button>
+    </Button>
   );
 }

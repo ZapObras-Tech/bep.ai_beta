@@ -21,6 +21,13 @@ export function Sidebar() {
     { type: 'attachments', label: '11. Anexos', icon: Paperclip },
   ];
 
+  const views = [
+    { id: 'home', label: 'Início', icon: HomeIcon },
+    { id: 'editor', label: 'Editor de BEP', icon: Settings },
+    { id: 'kanban', label: 'KANBAN', icon: LayoutDashboard },
+    { id: 'ifc', label: 'IFC / Análise', icon: Box },
+  ] as const;
+
   const handleNavigation = (type: string) => {
     setActiveView('editor');
     // Check if block exists
@@ -46,79 +53,51 @@ export function Sidebar() {
         <span className="font-bold text-lg text-slate-800">BEP.ai</span>
       </div>
 
-      <div className="space-y-1 mb-8">
+      <nav aria-label="Modo de visualização" className="space-y-1 mb-8">
         <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2">
           Modo de Visualização
         </h3>
-        <motion.button
-          whileHover={{ scale: 1.02, x: 4 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => setActiveView('home')}
-          className={clsx(
-            "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors group text-left",
-            activeView === 'home' ? "text-orange-600 bg-orange-50" : "text-slate-600 hover:text-orange-600 hover:bg-orange-50"
-          )}
-        >
-          <HomeIcon className="w-4 h-4 shrink-0" />
-          <span>Início</span>
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.02, x: 4 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => setActiveView('editor')}
-          className={clsx(
-            "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors group text-left",
-            activeView === 'editor' ? "text-orange-600 bg-orange-50" : "text-slate-600 hover:text-orange-600 hover:bg-orange-50"
-          )}
-        >
-          <Settings className="w-4 h-4 shrink-0" />
-          <span>Editor de BEP</span>
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.02, x: 4 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => setActiveView('kanban')}
-          className={clsx(
-            "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors group text-left",
-            activeView === 'kanban' ? "text-orange-600 bg-orange-50" : "text-slate-600 hover:text-orange-600 hover:bg-orange-50"
-          )}
-        >
-          <LayoutDashboard className="w-4 h-4 shrink-0" />
-          <span>KANBAN</span>
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.02, x: 4 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => setActiveView('ifc')}
-          className={clsx(
-            "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors group text-left",
-            activeView === 'ifc' ? "text-orange-600 bg-orange-50" : "text-slate-600 hover:text-orange-600 hover:bg-orange-50"
-          )}
-        >
-          <Box className="w-4 h-4 shrink-0" />
-          <span>IFC / Análise</span>
-        </motion.button>
-      </div>
+        {views.map((view) => {
+          const active = activeView === view.id;
+          return (
+            <motion.button
+              key={view.id}
+              whileHover={{ scale: 1.02, x: 4 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setActiveView(view.id)}
+              aria-current={active ? 'page' : undefined}
+              className={clsx(
+                "w-full flex items-center gap-3 px-3 min-h-[44px] text-sm font-medium rounded-lg transition-colors group text-left",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500",
+                active ? "text-orange-700 bg-orange-100" : "text-slate-600 hover:text-orange-700 hover:bg-orange-50"
+              )}
+            >
+              <view.icon className="w-4 h-4 shrink-0" />
+              <span>{view.label}</span>
+            </motion.button>
+          );
+        })}
+      </nav>
 
-      <div className="space-y-1">
+      <nav aria-label="Seções do BEP" className="space-y-1">
         <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2">
           Navegação
         </h3>
-        
+
         {modules.map((module) => (
           <motion.button
             key={module.type}
             whileHover={{ scale: 1.02, x: 4 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => handleNavigation(module.type)}
-            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors group text-left"
+            className="w-full flex items-center gap-3 px-3 min-h-[44px] text-sm font-medium text-slate-600 hover:text-orange-700 hover:bg-orange-50 rounded-lg transition-colors group text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
           >
             <module.icon className="w-4 h-4 text-slate-400 group-hover:text-orange-600 shrink-0" />
             <span className="truncate">{module.label}</span>
-            <ArrowRight className="w-3 h-3 ml-auto opacity-0 group-hover:opacity-100 shrink-0" />
+            <ArrowRight className="w-3.5 h-3.5 ml-auto text-slate-300 group-hover:text-orange-600 shrink-0" />
           </motion.button>
         ))}
-      </div>
+      </nav>
 
       <div className="mt-auto pt-6 border-t border-slate-100">
         <div className="bg-orange-50 rounded-xl p-4">

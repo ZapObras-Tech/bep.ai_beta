@@ -2,6 +2,9 @@ import React from 'react';
 import { BlockData, useBEPStore } from '../../store/bepStore';
 import { Plus, Trash2 } from 'lucide-react';
 import { AiSuggestionButton } from '../ui/AiSuggestionButton';
+import { Button } from '../ui/Button';
+import { IconButton } from '../ui/IconButton';
+import { TableTextField, TableSelectField } from '../ui/TableField';
 
 interface Props {
   block: BlockData;
@@ -56,58 +59,61 @@ export function ScopeBlock({ block }: Props) {
             onSuggest={handleAiSuggest}
             json={true}
           />
-          <button onClick={addGoal} className="text-xs flex items-center gap-1 bg-orange-50 text-orange-700 px-3 py-1.5 rounded-md hover:bg-orange-100">
-            <Plus className="w-3 h-3" /> Adicionar Objetivo
-          </button>
+          <Button variant="accent" size="sm" onClick={addGoal} icon={<Plus className="w-3.5 h-3.5" />}>
+            Adicionar Objetivo
+          </Button>
         </div>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left text-slate-600 border border-slate-200 rounded-lg">
+          <caption className="sr-only">Usos BIM e objetivos organizacionais, por prioridade</caption>
           <thead className="bg-slate-50 text-xs uppercase text-slate-500 font-semibold">
             <tr>
-              <th className="px-4 py-3 border-b w-24">Prioridade (1-3)</th>
-              <th className="px-4 py-3 border-b">Descrição do Objetivo</th>
-              <th className="px-4 py-3 border-b">Usos BIM Associados (Messner, 2023)</th>
-              <th className="px-4 py-3 border-b w-10"></th>
+              <th scope="col" className="px-4 py-3 border-b w-28">Prioridade (1-3)</th>
+              <th scope="col" className="px-4 py-3 border-b">Descrição do Objetivo</th>
+              <th scope="col" className="px-4 py-3 border-b">Usos BIM Associados (Messner, 2023)</th>
+              <th scope="col" className="px-4 py-3 border-b w-16 text-center">Ações</th>
             </tr>
           </thead>
           <tbody>
             {goals.map((row: any, index: number) => (
               <tr key={index} className="border-b last:border-0 hover:bg-slate-50/50">
-                <td className="px-4 py-2">
-                  <select
+                <td className="px-3 py-2">
+                  <TableSelectField
                     value={row.priority}
                     onChange={(e) => updateGoal(index, 'priority', e.target.value)}
-                    className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
+                    aria-label={`Prioridade do objetivo ${index + 1}`}
                   >
                     <option value="1">1 (Alta)</option>
                     <option value="2">2 (Média)</option>
                     <option value="3">3 (Baixa)</option>
-                  </select>
+                  </TableSelectField>
                 </td>
-                <td className="px-4 py-2">
-                  <input
-                    type="text"
+                <td className="px-3 py-2">
+                  <TableTextField
                     value={row.objective}
                     onChange={(e) => updateGoal(index, 'objective', e.target.value)}
-                    className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                     placeholder="Objetivo..."
+                    aria-label={`Descrição do objetivo ${index + 1}`}
                   />
                 </td>
-                <td className="px-4 py-2">
-                  <input
-                    type="text"
+                <td className="px-3 py-2">
+                  <TableTextField
                     value={row.uses}
                     onChange={(e) => updateGoal(index, 'uses', e.target.value)}
-                    className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                     placeholder="Usos BIM..."
+                    aria-label={`Usos BIM do objetivo ${index + 1}`}
                   />
                 </td>
-                <td className="px-4 py-2 text-center">
-                  <button onClick={() => removeGoal(index)} className="text-slate-400 hover:text-red-500">
+                <td className="px-3 py-2 text-center">
+                  <IconButton
+                    variant="danger"
+                    onClick={() => removeGoal(index)}
+                    aria-label={`Remover objetivo ${index + 1}`}
+                  >
                     <Trash2 className="w-4 h-4" />
-                  </button>
+                  </IconButton>
                 </td>
               </tr>
             ))}

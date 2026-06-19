@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useBEPStore } from '../../store/bepStore';
 import {
   listNotebooks,
@@ -22,6 +22,24 @@ export function NotebookLMConnect() {
 
   const isNB = aiProviderId === 'notebooklm';
   const selected = notebooks.find((n) => n.id === notebookId);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  // Fecha o painel com Escape ou clique fora — comportamento esperado de menu.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    const onClick = (e: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('mousedown', onClick);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('mousedown', onClick);
+    };
+  }, [open]);
 
   const loadNotebooks = async () => {
     setLoading(true);
@@ -71,10 +89,12 @@ export function NotebookLMConnect() {
   const label = isNB ? (selected ? `NotebookLM: ${selected.title}` : 'NotebookLM') : 'IA: DeepSeek';
 
   return (
-    <div className="relative">
+    <div className="relative" ref={rootRef}>
       <button
         onClick={togglePanel}
-        className="flex items-center gap-2 px-3 py-2 bg-white text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-sm font-medium text-sm"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="flex items-center gap-2 h-11 px-3 bg-white text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors shadow-sm font-medium text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-1"
         title="Escolher o motor de IA e o projeto NotebookLM"
       >
         <BookOpen className="w-4 h-4 text-orange-600" />
@@ -158,13 +178,15 @@ export function NotebookLMConnect() {
                     <p className="text-xs text-slate-400">Nenhum notebook encontrado nesta conta.</p>
                   )}
 
-                  <div className="max-h-56 overflow-y-auto space-y-1">
+                  <div role="listbox" aria-label="Projetos do NotebookLM" className="max-h-56 overflow-y-auto space-y-1">
                     {notebooks.map((n) => (
                       <button
                         key={n.id}
+                        role="option"
+                        aria-selected={n.id === notebookId}
                         onClick={() => setNotebookId(n.id)}
-                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-left transition-colors ${
-                          n.id === notebookId ? 'bg-orange-50 text-orange-700' : 'hover:bg-slate-50 text-slate-700'
+                        className={`w-full flex items-center gap-2 px-3 min-h-[44px] rounded-md text-sm text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 ${
+                          n.id === notebookId ? 'bg-orange-100 text-orange-800' : 'hover:bg-slate-50 text-slate-700'
                         }`}
                       >
                         {n.id === notebookId ? (

@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { BlockData, useBEPStore } from '../../store/bepStore';
 import { optimizeLOD } from '../../lib/gemini';
-import { Loader2, AlertTriangle, CheckCircle, Plus, Trash2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Plus, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { AiSuggestionButton } from '../ui/AiSuggestionButton';
+import { Button } from '../ui/Button';
+import { IconButton } from '../ui/IconButton';
+import { TableTextField, TableSelectField } from '../ui/TableField';
 
 interface Props {
   block: BlockData;
@@ -80,57 +83,56 @@ export function LODBlock({ block }: Props) {
             onSuggest={handleAiSuggest}
             json={true}
           />
-          <button onClick={addRequirement} className="text-xs flex items-center gap-1 bg-orange-50 text-orange-700 px-3 py-1.5 rounded-md hover:bg-orange-100">
-            <Plus className="w-3 h-3" /> Adicionar Fase
-          </button>
+          <Button variant="accent" size="sm" onClick={addRequirement} icon={<Plus className="w-3.5 h-3.5" />}>
+            Adicionar Fase
+          </Button>
         </div>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left text-slate-600 border border-slate-200 rounded-lg">
+          <caption className="sr-only">Tabela 8 - Requisitos de Informação do Projeto</caption>
           <thead className="bg-slate-50 text-xs uppercase text-slate-500 font-semibold">
             <tr>
-              <th className="px-4 py-3 border-b">Fase</th>
-              <th className="px-4 py-3 border-b">Nível de Desenvolvimento (LOD)</th>
-              <th className="px-4 py-3 border-b">Nível de Informação (LOIN)</th>
-              <th className="px-4 py-3 border-b w-10"></th>
+              <th scope="col" className="px-4 py-3 border-b">Fase</th>
+              <th scope="col" className="px-4 py-3 border-b">Nível de Desenvolvimento (LOD)</th>
+              <th scope="col" className="px-4 py-3 border-b">Nível de Informação (LOIN)</th>
+              <th scope="col" className="px-4 py-3 border-b w-10 text-center">Ações</th>
             </tr>
           </thead>
           <tbody>
             {requirements.map((row: any, index: number) => (
               <tr key={index} className="border-b last:border-0 hover:bg-slate-50/50">
                 <td className="px-4 py-2">
-                  <input
-                    type="text"
+                  <TableTextField
                     value={row.phase}
                     onChange={(e) => updateRequirement(index, 'phase', e.target.value)}
-                    className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                     placeholder="Fase..."
+                    aria-label={`Fase linha ${index + 1}`}
                   />
                 </td>
                 <td className="px-4 py-2">
-                  <select
+                  <TableSelectField
                     value={row.lod}
                     onChange={(e) => updateRequirement(index, 'lod', e.target.value)}
-                    className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
+                    aria-label={`Nível de Desenvolvimento (LOD) linha ${index + 1}`}
                   >
                     <option value="">Selecione...</option>
                     {lods.map(l => <option key={l} value={l}>{l}</option>)}
-                  </select>
+                  </TableSelectField>
                 </td>
                 <td className="px-4 py-2">
-                  <input
-                    type="text"
+                  <TableTextField
                     value={row.loin}
                     onChange={(e) => updateRequirement(index, 'loin', e.target.value)}
-                    className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                     placeholder="1, 2, 3..."
+                    aria-label={`Nível de Informação (LOIN) linha ${index + 1}`}
                   />
                 </td>
                 <td className="px-4 py-2 text-center">
-                  <button onClick={() => removeRequirement(index)} className="text-slate-400 hover:text-red-500">
+                  <IconButton variant="danger" onClick={() => removeRequirement(index)} aria-label={`Remover linha ${index + 1}`}>
                     <Trash2 className="w-4 h-4" />
-                  </button>
+                  </IconButton>
                 </td>
               </tr>
             ))}
@@ -139,17 +141,19 @@ export function LODBlock({ block }: Props) {
       </div>
 
       <div className="flex justify-end pt-4 border-t">
-        <button
+        <Button
+          variant="primary"
           onClick={handleAnalyze}
-          disabled={loading || requirements.length === 0}
-          className="px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors flex items-center gap-2"
+          loading={loading}
+          disabled={requirements.length === 0}
         >
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verificar Over-modeling (IA)"}
-        </button>
+          Verificar Over-modeling (IA)
+        </Button>
       </div>
 
       {analysis && (
         <motion.div
+          role="status"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className={`p-4 rounded-xl border ${

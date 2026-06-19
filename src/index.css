@@ -1,5 +1,39 @@
 @import "tailwindcss";
 
+@layer base {
+  /* Fallback de foco para qualquer elemento focável sem estilo próprio. Os
+     primitivos (Button/IconButton) já trazem anel; isto cobre o resto. */
+  :focus-visible {
+    outline: 2px solid theme(colors.orange.500);
+    outline-offset: 2px;
+  }
+
+  /* Respeita usuários que pedem menos movimento: zera animações/transições. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Conteúdo só para leitor de tela (legendas de tabela, etc.). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 @media print {
   @page {
     margin: 10mm;
@@ -13,13 +47,12 @@
     print-color-adjust: exact !important;
   }
 
-  /* Hide UI elements */
-  aside, 
-  header button, 
+  /* Hide UI elements. Chrome de UI (botões/primitivos) marca-se com .no-print —
+     substitui os antigos seletores frágeis por classe de cor. */
+  aside,
+  header button,
   header .relative, /* Import button container */
-  .no-print,
-  button[class*="bg-orange-50"], /* Add buttons */
-  button[class*="text-slate-400"] /* Delete buttons */
+  .no-print
   {
     display: none !important;
   }

@@ -1,6 +1,9 @@
 import React from 'react';
 import { BlockData, useBEPStore } from '../../store/bepStore';
 import { ListChecks, Plus, Trash2 } from 'lucide-react';
+import { Button } from '../ui/Button';
+import { IconButton } from '../ui/IconButton';
+import { TableTextField } from '../ui/TableField';
 
 interface Props {
   block: BlockData;
@@ -33,75 +36,72 @@ export function ResponsibilityMatrixBlock({ block }: Props) {
           <ListChecks className="w-4 h-4 text-orange-600" />
           Tabela 4 - Contatos da Equipe Técnica
         </h3>
-        <button onClick={addMember} className="text-xs flex items-center gap-1 bg-orange-50 text-orange-700 px-3 py-1.5 rounded-md hover:bg-orange-100">
-          <Plus className="w-3 h-3" /> Adicionar Membro
-        </button>
+        <Button variant="accent" size="sm" onClick={addMember} icon={<Plus className="w-3.5 h-3.5" />}>
+          Adicionar Membro
+        </Button>
       </div>
-      
+
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left text-slate-600 border border-slate-200 rounded-lg">
+          <caption className="sr-only">Contatos da equipe técnica: papel, nome, registro no conselho, e-mail e contato de cada responsável</caption>
           <thead className="bg-slate-50 text-xs uppercase text-slate-500 font-semibold">
             <tr>
-              <th className="px-4 py-3 border-b">Papel</th>
-              <th className="px-4 py-3 border-b">Nome</th>
-              <th className="px-4 py-3 border-b">Registro (Conselho)</th>
-              <th className="px-4 py-3 border-b">E-mail</th>
-              <th className="px-4 py-3 border-b">Contato</th>
-              <th className="px-4 py-3 border-b w-10"></th>
+              <th scope="col" className="px-4 py-3 border-b">Papel</th>
+              <th scope="col" className="px-4 py-3 border-b">Nome</th>
+              <th scope="col" className="px-4 py-3 border-b">Registro (Conselho)</th>
+              <th scope="col" className="px-4 py-3 border-b">E-mail</th>
+              <th scope="col" className="px-4 py-3 border-b">Contato</th>
+              <th scope="col" className="px-4 py-3 border-b w-10 text-center">Ações</th>
             </tr>
           </thead>
           <tbody>
             {block.content.technical_team?.map((row: any, index: number) => (
               <tr key={index} className="border-b last:border-0 hover:bg-slate-50/50">
                 <td className="px-4 py-2 font-medium text-slate-700">
-                  <input
-                    type="text"
+                  <TableTextField
                     value={row.role}
                     onChange={(e) => handleChange(index, 'role', e.target.value)}
-                    className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300 font-medium"
                     placeholder="Papel..."
+                    aria-label={`Papel do responsável ${index + 1}`}
                   />
                 </td>
                 <td className="px-4 py-2">
-                  <input
-                    type="text"
+                  <TableTextField
                     value={row.name}
                     onChange={(e) => handleChange(index, 'name', e.target.value)}
-                    className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                     placeholder="Nome..."
+                    aria-label={`Nome do responsável ${index + 1}`}
                   />
                 </td>
                 <td className="px-4 py-2">
-                  <input
-                    type="text"
+                  <TableTextField
                     value={row.registry}
                     onChange={(e) => handleChange(index, 'registry', e.target.value)}
-                    className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                     placeholder="CAU/CREA..."
+                    aria-label={`Registro no conselho do responsável ${index + 1}`}
                   />
                 </td>
                 <td className="px-4 py-2">
-                  <input
+                  <TableTextField
                     type="email"
                     value={row.email}
                     onChange={(e) => handleChange(index, 'email', e.target.value)}
-                    className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                     placeholder="E-mail..."
+                    aria-label={`E-mail do responsável ${index + 1}`}
                   />
                 </td>
                 <td className="px-4 py-2">
-                  <input
-                    type="text"
+                  <TableTextField
                     value={row.phone}
                     onChange={(e) => handleChange(index, 'phone', e.target.value)}
-                    className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                     placeholder="Tel..."
+                    aria-label={`Contato do responsável ${index + 1}`}
                   />
                 </td>
                 <td className="px-4 py-2 text-center">
-                  <button onClick={() => removeMember(index)} className="text-slate-400 hover:text-red-500 transition-colors">
+                  <IconButton variant="danger" onClick={() => removeMember(index)} aria-label={`Remover responsável ${index + 1}`}>
                     <Trash2 className="w-4 h-4" />
-                  </button>
+                  </IconButton>
                 </td>
               </tr>
             ))}

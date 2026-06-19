@@ -1,6 +1,5 @@
 import React from 'react';
 import { BlockData, useBEPStore } from '../../store/bepStore';
-import { FileText } from 'lucide-react';
 import { RefineButton } from '../ui/RefineButton';
 
 interface Props {
@@ -52,6 +51,7 @@ export function GeneralDataBlock({ block }: Props) {
                 type="text"
                 value={block.content[field.key] || ''}
                 onChange={(e) => handleChange(field.key, e.target.value)}
+                aria-label={field.label}
                 className="w-full p-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-orange-500 outline-none"
               />
             </div>
@@ -74,6 +74,7 @@ export function GeneralDataBlock({ block }: Props) {
             <textarea
               value={block.content.oir_description || ''}
               onChange={(e) => handleChange('oir_description', e.target.value)}
+              aria-label="Descrição (OIR)"
               className="w-full h-20 p-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-orange-500 outline-none resize-none"
             />
           </div>
@@ -88,6 +89,7 @@ export function GeneralDataBlock({ block }: Props) {
             <textarea
               value={block.content.eir_description || ''}
               onChange={(e) => handleChange('eir_description', e.target.value)}
+              aria-label="Descrição (EIR)"
               className="w-full h-20 p-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-orange-500 outline-none resize-none"
             />
           </div>
@@ -104,6 +106,7 @@ export function GeneralDataBlock({ block }: Props) {
               type="text"
               value={block.content.bidder_company || ''}
               onChange={(e) => handleChange('bidder_company', e.target.value)}
+              aria-label="Empresa ou Consórcio"
               className="w-full p-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-orange-500 outline-none"
             />
           </div>
@@ -115,6 +118,7 @@ export function GeneralDataBlock({ block }: Props) {
                 placeholder="Representante 1"
                 value={block.content.bidder_representatives?.[0] || ''}
                 onChange={(e) => handleArrayChange('bidder_representatives', 0, e.target.value)}
+                aria-label="Representante 1"
                 className="w-full p-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-orange-500 outline-none"
               />
               <input
@@ -122,6 +126,7 @@ export function GeneralDataBlock({ block }: Props) {
                 placeholder="Representante 2"
                 value={block.content.bidder_representatives?.[1] || ''}
                 onChange={(e) => handleArrayChange('bidder_representatives', 1, e.target.value)}
+                aria-label="Representante 2"
                 className="w-full p-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-orange-500 outline-none"
               />
             </div>
@@ -132,6 +137,7 @@ export function GeneralDataBlock({ block }: Props) {
               type="date"
               value={block.content.proposal_date || ''}
               onChange={(e) => handleChange('proposal_date', e.target.value)}
+              aria-label="Data da Proposta"
               className="w-full p-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-orange-500 outline-none text-slate-600"
             />
           </div>

@@ -7,10 +7,11 @@ import { Editor } from './components/layout/Editor';
 import { KanbanBoard } from './components/layout/KanbanBoard';
 import { Home } from './components/layout/Home';
 import { motion, AnimatePresence } from 'motion/react';
-import { Download, FileDown, Upload, Loader2, Sparkles, Save, FolderOpen, CheckCircle2 } from 'lucide-react';
+import { Download, FileDown, Upload, Loader2, Sparkles, Save, FolderOpen, CheckCircle2, X } from 'lucide-react';
 import { exportToPDF } from './lib/export';
 import { extractTextFromPDF } from './lib/pdf';
 import { NotebookLMConnect } from './components/ui/NotebookLMConnect';
+import { Button } from './components/ui/Button';
 
 // Code-split the IFC viewer: three.js + ThatOpen are heavy and shouldn't be in
 // the initial bundle.
@@ -194,14 +195,23 @@ function App() {
       <AnimatePresence>
         {toast && (
           <motion.div
+            role="status"
+            aria-live="polite"
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-slate-900 text-white text-sm font-medium rounded-lg shadow-lg max-w-sm"
+            className="fixed bottom-6 right-6 z-50 flex items-center gap-3 pl-4 pr-2 py-3 bg-slate-900 text-white text-sm font-medium rounded-lg shadow-lg max-w-sm"
           >
             <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
-            {toast}
+            <span>{toast}</span>
+            <button
+              onClick={() => setToast(null)}
+              aria-label="Fechar notificação"
+              className="inline-flex items-center justify-center w-7 h-7 rounded-md text-slate-400 hover:text-white hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -244,56 +254,50 @@ function App() {
                       </p>
                     )}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <NotebookLMConnect />
                     <div className="relative">
                       <input
                         type="file"
                         accept=".pdf"
                         onChange={handleGlobalImport}
-                        className="hidden"
+                        className="sr-only peer"
                         id="global-import"
                         disabled={isImporting}
                       />
                       <label
                         htmlFor="global-import"
-                        className={`flex items-center gap-2 px-4 py-2 bg-orange-50 text-orange-700 border border-orange-200 rounded-lg hover:bg-orange-100 transition-colors shadow-sm font-medium text-sm cursor-pointer ${isImporting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`inline-flex items-center gap-2 h-11 px-4 bg-orange-100 text-orange-800 border border-orange-200 rounded-lg hover:bg-orange-200 transition-colors shadow-sm font-medium text-sm cursor-pointer peer-focus-visible:ring-2 peer-focus-visible:ring-orange-500 peer-focus-visible:ring-offset-1 ${isImporting ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
                         {isImporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                         {isImporting ? "Importando..." : "Importar Documento (PDF)"}
                       </label>
                     </div>
 
-                    <input
-                      type="file"
-                      accept=".json"
-                      onChange={handleLoadProject}
-                      className="hidden"
-                      id="load-project"
-                    />
-                    <label
-                      htmlFor="load-project"
-                      className="flex items-center gap-2 px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-sm font-medium text-sm cursor-pointer"
-                    >
-                      <FolderOpen className="w-4 h-4" />
-                      Carregar
-                    </label>
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept=".json"
+                        onChange={handleLoadProject}
+                        className="sr-only peer"
+                        id="load-project"
+                      />
+                      <label
+                        htmlFor="load-project"
+                        className="inline-flex items-center gap-2 h-11 px-4 bg-white text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors shadow-sm font-medium text-sm cursor-pointer peer-focus-visible:ring-2 peer-focus-visible:ring-orange-500 peer-focus-visible:ring-offset-1"
+                      >
+                        <FolderOpen className="w-4 h-4" />
+                        Carregar
+                      </label>
+                    </div>
 
-                    <button
-                      onClick={handleSaveProject}
-                      className="flex items-center gap-2 px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-sm font-medium text-sm"
-                    >
-                      <Save className="w-4 h-4" />
+                    <Button variant="secondary" noPrint onClick={handleSaveProject} icon={<Save className="w-4 h-4" />}>
                       Salvar
-                    </button>
+                    </Button>
 
-                    <button
-                      onClick={handleExportHTML}
-                      className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors shadow-sm font-medium text-sm"
-                    >
-                      <FileDown className="w-4 h-4" />
+                    <Button variant="primary" noPrint onClick={handleExportHTML} icon={<FileDown className="w-4 h-4" />}>
                       EXPORTAR
-                    </button>
+                    </Button>
                   </div>
                 </header>
 

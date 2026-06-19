@@ -1,6 +1,9 @@
 import React from 'react';
 import { BlockData, useBEPStore } from '../../store/bepStore';
 import { Users, Plus, Trash2 } from 'lucide-react';
+import { Button } from '../ui/Button';
+import { IconButton } from '../ui/IconButton';
+import { TableTextField } from '../ui/TableField';
 
 interface Props {
   block: BlockData;
@@ -44,74 +47,72 @@ export function TeamBlock({ block }: Props) {
   };
 
   const renderTable = (
-    data: any[], 
+    data: any[],
     onChange: (index: number, field: string, value: string) => void,
-    onRemove: (index: number) => void
+    onRemove: (index: number) => void,
+    caption: string
   ) => (
     <div className="overflow-x-auto">
       <table className="w-full text-sm text-left text-slate-600 border border-slate-200 rounded-lg">
+        <caption className="sr-only">{caption}</caption>
         <thead className="bg-slate-50 text-xs uppercase text-slate-500 font-semibold">
           <tr>
-            <th className="px-4 py-3 border-b">Papel</th>
-            <th className="px-4 py-3 border-b">Nome</th>
-            <th className="px-4 py-3 border-b">Formação</th>
-            <th className="px-4 py-3 border-b">E-mail</th>
-            <th className="px-4 py-3 border-b">Telefone</th>
-            <th className="px-4 py-3 border-b w-10"></th>
+            <th scope="col" className="px-4 py-3 border-b">Papel</th>
+            <th scope="col" className="px-4 py-3 border-b">Nome</th>
+            <th scope="col" className="px-4 py-3 border-b">Formação</th>
+            <th scope="col" className="px-4 py-3 border-b">E-mail</th>
+            <th scope="col" className="px-4 py-3 border-b">Telefone</th>
+            <th scope="col" className="px-4 py-3 border-b w-10 text-center">Ações</th>
           </tr>
         </thead>
         <tbody>
           {data.map((row, index) => (
             <tr key={index} className="border-b last:border-0 hover:bg-slate-50/50">
               <td className="px-4 py-2 font-medium text-slate-700">
-                <input
-                  type="text"
+                <TableTextField
                   value={row.role}
                   onChange={(e) => onChange(index, 'role', e.target.value)}
-                  className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300 font-medium"
                   placeholder="Papel..."
+                  aria-label={`Papel do membro ${index + 1}`}
                 />
               </td>
               <td className="px-4 py-2">
-                <input
-                  type="text"
+                <TableTextField
                   value={row.name}
                   onChange={(e) => onChange(index, 'name', e.target.value)}
-                  className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                   placeholder="Nome..."
+                  aria-label={`Nome do membro ${index + 1}`}
                 />
               </td>
               <td className="px-4 py-2">
-                <input
-                  type="text"
+                <TableTextField
                   value={row.education}
                   onChange={(e) => onChange(index, 'education', e.target.value)}
-                  className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                   placeholder="Formação..."
+                  aria-label={`Formação do membro ${index + 1}`}
                 />
               </td>
               <td className="px-4 py-2">
-                <input
+                <TableTextField
                   type="email"
                   value={row.email}
                   onChange={(e) => onChange(index, 'email', e.target.value)}
-                  className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                   placeholder="E-mail..."
+                  aria-label={`E-mail do membro ${index + 1}`}
                 />
               </td>
               <td className="px-4 py-2">
-                <input
-                  type="text"
+                <TableTextField
                   value={row.phone}
                   onChange={(e) => onChange(index, 'phone', e.target.value)}
-                  className="w-full bg-transparent outline-none border-b border-transparent focus:border-orange-300"
                   placeholder="Tel..."
+                  aria-label={`Telefone do membro ${index + 1}`}
                 />
               </td>
               <td className="px-4 py-2 text-center">
-                <button onClick={() => onRemove(index)} className="text-slate-400 hover:text-red-500 transition-colors">
+                <IconButton variant="danger" onClick={() => onRemove(index)} aria-label={`Remover membro ${index + 1}`}>
                   <Trash2 className="w-4 h-4" />
-                </button>
+                </IconButton>
               </td>
             </tr>
           ))}
@@ -128,11 +129,11 @@ export function TeamBlock({ block }: Props) {
             <Users className="w-4 h-4 text-orange-600" />
             Dados do Contratante
           </h3>
-          <button onClick={addContractor} className="text-xs flex items-center gap-1 bg-orange-50 text-orange-700 px-3 py-1.5 rounded-md hover:bg-orange-100">
-            <Plus className="w-3 h-3" /> Adicionar Membro
-          </button>
+          <Button variant="accent" size="sm" onClick={addContractor} icon={<Plus className="w-3.5 h-3.5" />}>
+            Adicionar Membro
+          </Button>
         </div>
-        {renderTable(block.content.contractor_team || [], handleContractorChange, removeContractor)}
+        {renderTable(block.content.contractor_team || [], handleContractorChange, removeContractor, 'Equipe do contratante: papel, nome, formação, e-mail e telefone de cada membro')}
       </div>
 
       <div>
@@ -141,11 +142,11 @@ export function TeamBlock({ block }: Props) {
             <Users className="w-4 h-4 text-orange-600" />
             Dados do Licitante
           </h3>
-          <button onClick={addBidder} className="text-xs flex items-center gap-1 bg-orange-50 text-orange-700 px-3 py-1.5 rounded-md hover:bg-orange-100">
-            <Plus className="w-3 h-3" /> Adicionar Membro
-          </button>
+          <Button variant="accent" size="sm" onClick={addBidder} icon={<Plus className="w-3.5 h-3.5" />}>
+            Adicionar Membro
+          </Button>
         </div>
-        {renderTable(block.content.bidder_team || [], handleBidderChange, removeBidder)}
+        {renderTable(block.content.bidder_team || [], handleBidderChange, removeBidder, 'Equipe do licitante: papel, nome, formação, e-mail e telefone de cada membro')}
       </div>
     </div>
   );

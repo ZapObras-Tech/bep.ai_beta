@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { BlockData, useBEPStore } from '../../store/bepStore';
-import { GripVertical, ChevronDown, ChevronRight, X, Sparkles, Loader2 } from 'lucide-react';
+import { GripVertical, ChevronDown, ChevronRight, X, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
 import clsx from 'clsx';
 import { isGeneratable, generateSection } from '../../lib/bep/sections';
+import { IconButton } from '../ui/IconButton';
+import { Button } from '../ui/Button';
 
 interface BlockWrapperProps {
   block: BlockData;
@@ -74,50 +76,55 @@ export function BlockWrapper({ block, children }: BlockWrapperProps) {
       )}
     >
       {/* Header */}
-      <div className="flex items-center gap-3 p-4 border-b border-slate-100 bg-slate-50/50 rounded-t-xl">
-        <button
+      <div className="flex items-center gap-2 p-3 border-b border-slate-100 bg-slate-50/50 rounded-t-xl">
+        <IconButton
+          variant="grip"
+          aria-label="Arrastar para reordenar a seção"
           {...attributes}
           {...listeners}
-          className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded cursor-grab active:cursor-grabbing"
         >
           <GripVertical className="w-4 h-4" />
-        </button>
+        </IconButton>
 
-        <button 
+        <button
           onClick={() => toggleBlock(block.id)}
-          className="flex items-center gap-2 flex-1 text-left"
+          aria-expanded={block.isExpanded}
+          aria-controls={`block-content-${block.id}`}
+          className="flex items-center gap-2 flex-1 text-left min-h-[44px] px-1 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
         >
           {block.isExpanded ? (
-            <ChevronDown className="w-4 h-4 text-slate-400" />
+            <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
           ) : (
-            <ChevronRight className="w-4 h-4 text-slate-400" />
+            <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
           )}
           <span className="font-semibold text-slate-700 text-sm">{block.title}</span>
         </button>
 
         {isGeneratable(block.type) && (
-          <button
+          <Button
+            variant="accent"
+            size="sm"
             onClick={handleGenerate}
-            disabled={generating}
+            loading={generating}
+            icon={<Sparkles className="w-3.5 h-3.5" />}
             title="Gerar esta seção com IA a partir dos documentos importados"
-            className="flex items-center gap-1.5 text-xs font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 px-2.5 py-1.5 rounded-md transition-colors disabled:opacity-50"
           >
-            {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
             {generating ? 'Gerando...' : 'Gerar IA'}
-          </button>
+          </Button>
         )}
 
-        <button
+        <IconButton
+          variant="danger"
+          aria-label={`Remover seção ${block.title}`}
           onClick={() => removeBlock(block.id)}
-          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
         >
           <X className="w-4 h-4" />
-        </button>
+        </IconButton>
       </div>
 
       {/* Content */}
       {block.isExpanded && (
-        <div className="p-6">
+        <div id={`block-content-${block.id}`} className="p-6">
           {children}
         </div>
       )}
