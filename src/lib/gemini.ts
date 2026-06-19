@@ -1,9 +1,6 @@
-import { GoogleGenAI } from "@google/genai";
-
-const apiKey = process.env.GEMINI_API_KEY;
-export const ai = new GoogleGenAI({ apiKey: apiKey || "" });
-
-const MODEL_NAME = "gemini-3-flash-preview"; // Using a fast model for interactive tasks
+// BEP-specific AI tasks. Prompt engineering lives here; the provider/model
+// plumbing lives in ./ai (swap providers there, not here).
+import { aiProvider } from './ai';
 
 // System instruction for BEP.ai
 const SYSTEM_INSTRUCTION = `
@@ -19,40 +16,23 @@ Diretrizes:
 `;
 
 export async function suggestContent(context: string, prompt: string, json: boolean = false) {
-  if (!apiKey) throw new Error("API Key not found");
-
   const fullPrompt = `
   Contexto do Projeto (Edital/EIR):
-  "${context.substring(0, 10000)}" 
-  
+  "${context.substring(0, 10000)}"
+
   Tarefa:
   ${prompt}
 
   ${json ? "Formato de Resposta: APENAS um JSON válido (sem blocos de código ```json). Se for uma lista, retorne um array." : "Responda apenas com o conteúdo solicitado, de forma direta e técnica (ISO 19650)."}
   `;
 
-  try {
-    const response = await ai.models.generateContent({
-      model: MODEL_NAME,
-      contents: fullPrompt,
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-        responseMimeType: json ? "application/json" : "text/plain",
-      },
-    });
-    return response.text;
-  } catch (error) {
-    console.error("Error suggesting content:", error);
-    throw error;
-  }
+  return aiProvider.generate({ prompt: fullPrompt, system: SYSTEM_INSTRUCTION, json, tier: 'fast' });
 }
 
 export async function extractEIR(text: string) {
-  if (!apiKey) throw new Error("API Key not found");
-
   const prompt = `
   Analise o seguinte texto de um Edital/EIR e extraia os dados principais para a Tabela 1 do BEP.
-  
+
   Texto do Edital:
   "${text}"
 
@@ -66,30 +46,15 @@ export async function extractEIR(text: string) {
   }
   `;
 
-  try {
-    const response = await ai.models.generateContent({
-      model: MODEL_NAME,
-      contents: prompt,
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-        responseMimeType: "application/json",
-      },
-    });
-    return response.text;
-  } catch (error) {
-    console.error("Error extracting EIR:", error);
-    throw error;
-  }
+  return aiProvider.generate({ prompt, system: SYSTEM_INSTRUCTION, json: true, tier: 'fast' });
 }
 
 export async function analyzeFullBEP(text: string) {
-  if (!apiKey) throw new Error("API Key not found");
-
   const prompt = `
   Você é um especialista em BIM. Analise o texto completo de um Edital/EIR (Exchange Information Requirements) e extraia TODAS as informações possíveis para preencher um Plano de Execução BIM (BEP).
-  
+
   Texto do Edital:
-  "${text.substring(0, 90000)}" // Limit to avoid token overflow, though 1.5 Pro handles large context.
+  "${text.substring(0, 90000)}"
 
   Retorne um JSON único com a seguinte estrutura exata (se não encontrar algo, deixe como string vazia ou array vazio):
 
@@ -166,58 +131,28 @@ export async function analyzeFullBEP(text: string) {
   }
   `;
 
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview", // Use the stronger model for full context analysis
-      contents: prompt,
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-        responseMimeType: "application/json",
-      },
-    });
-    return response.text;
-  } catch (error) {
-    console.error("Error analyzing full BEP:", error);
-    throw error;
-  }
+  // Full-context analysis uses the 'pro' tier.
+  return aiProvider.generate({ prompt, system: SYSTEM_INSTRUCTION, json: true, tier: 'pro' });
 }
 
-
 export async function suggestBIMUses(projectType: string, currentUses: string[]) {
-  if (!apiKey) throw new Error("API Key not found");
-
   const prompt = `
   O projeto é do tipo: "${projectType}".
   Usos BIM atuais: ${JSON.stringify(currentUses)}.
 
   Sugira 3 a 5 Usos BIM adicionais preditivos e justifique brevemente com base no tipo do projeto.
   Exemplo: Se for Industrial, sugira Clash Detection. Se for Residencial, sugira Extração de Quantitativos.
-  
+
   Retorne apenas a lista de sugestões em formato JSON:
   [
     { "use": "Nome do Uso", "justification": "Justificativa técnica" }
   ]
   `;
 
-  try {
-    const response = await ai.models.generateContent({
-      model: MODEL_NAME,
-      contents: prompt,
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-        responseMimeType: "application/json",
-      },
-    });
-    return response.text;
-  } catch (error) {
-    console.error("Error suggesting BIM uses:", error);
-    throw error;
-  }
+  return aiProvider.generate({ prompt, system: SYSTEM_INSTRUCTION, json: true, tier: 'fast' });
 }
 
 export async function optimizeLOD(element: string, phase: string, requestedLOD: string) {
-  if (!apiKey) throw new Error("API Key not found");
-
   const prompt = `
   Analise o seguinte requisito de LOD/LOIN:
   Elemento: "${element}"
@@ -236,32 +171,17 @@ export async function optimizeLOD(element: string, phase: string, requestedLOD: 
   }
   `;
 
-  try {
-    const response = await ai.models.generateContent({
-      model: MODEL_NAME,
-      contents: prompt,
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-        responseMimeType: "application/json",
-      },
-    });
-    return response.text;
-  } catch (error) {
-    console.error("Error optimizing LOD:", error);
-    throw error;
-  }
+  return aiProvider.generate({ prompt, system: SYSTEM_INSTRUCTION, json: true, tier: 'fast' });
 }
 
 export async function validateInfrastructure(software: string, hardware: string) {
-  if (!apiKey) throw new Error("API Key not found");
-
   const prompt = `
   Valide a compatibilidade de hardware para o software BIM.
   Software de Autoria: "${software}"
   Hardware Disponível: "${hardware}"
 
   Verifique requisitos de CPU, RAM e GPU.
-  
+
   Saída esperada (JSON):
   {
     "compatible": boolean,
@@ -270,25 +190,10 @@ export async function validateInfrastructure(software: string, hardware: string)
   }
   `;
 
-  try {
-    const response = await ai.models.generateContent({
-      model: MODEL_NAME,
-      contents: prompt,
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-        responseMimeType: "application/json",
-      },
-    });
-    return response.text;
-  } catch (error) {
-    console.error("Error validating infrastructure:", error);
-    throw error;
-  }
+  return aiProvider.generate({ prompt, system: SYSTEM_INSTRUCTION, json: true, tier: 'fast' });
 }
 
 export async function refineText(text: string) {
-  if (!apiKey) throw new Error("API Key not found");
-
   const prompt = `
   Reescreva o seguinte texto informal para um jargão técnico de engenharia/BIM, alinhado à ISO 19650.
   Mantenha o sentido original, mas torne-o profissional e contratual.
@@ -298,30 +203,16 @@ export async function refineText(text: string) {
   Saída: Apenas o texto reescrito.
   `;
 
-  try {
-    const response = await ai.models.generateContent({
-      model: MODEL_NAME,
-      contents: prompt,
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-      },
-    });
-    return response.text;
-  } catch (error) {
-    console.error("Error refining text:", error);
-    throw error;
-  }
+  return aiProvider.generate({ prompt, system: SYSTEM_INSTRUCTION, tier: 'fast' });
 }
 
 export async function askISO(question: string, context: string) {
-  if (!apiKey) throw new Error("API Key not found");
-
   const prompt = `
   Você é um especialista em normas BIM (ISO 19650 e NBR 15965).
   Use o seguinte contexto extraído de um arquivo PDF (Norma ou Documento de Referência) para responder à pergunta do usuário.
-  
+
   Contexto:
-  "${context.substring(0, 100000)}" // Limit context to avoid token limits if extremely large, though Gemini handles large context well.
+  "${context.substring(0, 100000)}"
 
   Pergunta:
   "${question}"
@@ -329,18 +220,5 @@ export async function askISO(question: string, context: string) {
   Responda de forma técnica, citando a norma quando possível.
   `;
 
-  try {
-    const response = await ai.models.generateContent({
-      model: MODEL_NAME,
-      contents: prompt,
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-      },
-    });
-    return response.text;
-  } catch (error) {
-    console.error("Error asking ISO:", error);
-    throw error;
-  }
+  return aiProvider.generate({ prompt, system: SYSTEM_INSTRUCTION, tier: 'fast' });
 }
-

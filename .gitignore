@@ -6,3 +6,15 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Notas internas e materiais de referência (não fazem parte do produto)
+memory/
+referencias/
+*.zip
+
+# Backend Python
+backend/data/
+backend/venv/
+backend/.venv/
+__pycache__/
+*.pyc

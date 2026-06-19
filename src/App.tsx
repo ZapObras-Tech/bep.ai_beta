@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { useBEPStore } from './store/bepStore';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -7,13 +7,19 @@ import { Editor } from './components/layout/Editor';
 import { KanbanBoard } from './components/layout/KanbanBoard';
 import { Home } from './components/layout/Home';
 import { motion, AnimatePresence } from 'motion/react';
-import { Download, FileDown, Upload, Loader2, Sparkles } from 'lucide-react';
+import { Download, FileDown, Upload, Loader2, Sparkles, Save, FolderOpen } from 'lucide-react';
 import { exportToPDF } from './lib/export';
 import { extractTextFromPDF } from './lib/pdf';
 import { analyzeFullBEP } from './lib/gemini';
 
+// Code-split the IFC viewer: three.js + ThatOpen are heavy and shouldn't be in
+// the initial bundle.
+const IfcAnalysis = lazy(() =>
+  import('./components/layout/IfcAnalysis').then((m) => ({ default: m.IfcAnalysis })),
+);
+
 function App() {
-  const { blocks, reorderBlocks, updateBlockContent, expandAllBlocks, setIsoContext, activeView } = useBEPStore();
+  const { blocks, reorderBlocks, updateBlockContent, expandAllBlocks, setIsoContext, isoContext, loadProject, activeView } = useBEPStore();
   const [isImporting, setIsImporting] = useState(false);
 
   const sensors = useSensors(
@@ -33,14 +39,31 @@ function App() {
     }
   }
 
-  const handleExportJSON = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(blocks, null, 2));
+  const handleSaveProject = () => {
+    const project = { version: 1, blocks, isoContext };
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(project, null, 2));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "bep_data.json");
+    downloadAnchorNode.setAttribute("download", "bep_projeto.json");
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
+  };
+
+  const handleLoadProject = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const data = JSON.parse(await file.text());
+      if (!Array.isArray(data.blocks)) throw new Error('Arquivo inválido.');
+      loadProject({ blocks: data.blocks, isoContext: data.isoContext });
+      alert('Projeto carregado com sucesso.');
+    } catch (err) {
+      console.error('Load project failed', err);
+      alert('Falha ao carregar o projeto. Verifique se o arquivo .json é válido.');
+    } finally {
+      e.target.value = '';
+    }
   };
 
   const handleExportHTML = () => {
@@ -175,8 +198,20 @@ function App() {
     <div className="flex h-screen bg-slate-50 text-slate-900 font-sans overflow-hidden">
       <Sidebar />
       
-      <main className="flex-1 overflow-y-auto p-8" id="main-scroll">
-        <div className="max-w-4xl mx-auto h-full">
+      <main className="flex-1 overflow-hidden" id="main-scroll">
+        {activeView === 'ifc' ? (
+          <Suspense
+            fallback={
+              <div className="h-full flex items-center justify-center text-slate-400">
+                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                Carregando visualizador 3D...
+              </div>
+            }
+          >
+            <IfcAnalysis />
+          </Suspense>
+        ) : (
+        <div className="max-w-4xl mx-auto h-full overflow-y-auto p-8">
           <AnimatePresence mode="wait">
             {activeView === 'editor' ? (
               <motion.div
@@ -211,6 +246,29 @@ function App() {
                         {isImporting ? "Analisando..." : "Importar EIR (PDF)"}
                       </label>
                     </div>
+
+                    <input
+                      type="file"
+                      accept=".json"
+                      onChange={handleLoadProject}
+                      className="hidden"
+                      id="load-project"
+                    />
+                    <label
+                      htmlFor="load-project"
+                      className="flex items-center gap-2 px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-sm font-medium text-sm cursor-pointer"
+                    >
+                      <FolderOpen className="w-4 h-4" />
+                      Carregar
+                    </label>
+
+                    <button
+                      onClick={handleSaveProject}
+                      className="flex items-center gap-2 px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-sm font-medium text-sm"
+                    >
+                      <Save className="w-4 h-4" />
+                      Salvar
+                    </button>
 
                     <button
                       onClick={handleExportHTML}
@@ -251,6 +309,7 @@ function App() {
             )}
           </AnimatePresence>
         </div>
+        )}
       </main>
     </div>
   );

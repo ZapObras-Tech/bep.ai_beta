@@ -1,80 +1,195 @@
-# PEB.AI - Gerador Inteligente de Plano de Execução BIM
+# BEP.ai — Gerador Inteligente de Plano de Execução BIM + Análise de IFC
 
-O **PEB.AI** é uma plataforma e assistente inteligente (IA) especializado em BIM (Building Information Modeling). Sua principal função é auxiliar profissionais, engenheiros e arquitetos na criação ágil e precisa de **Planos de Execução BIM (BEP/PEB)**, garantindo total alinhamento às normas **ISO 19650** e **NBR 15965**.
+O **BEP.ai** é um protótipo web educacional que faz três coisas:
 
----
+1. **Cria Planos de Execução BIM (BEP/PEB)** alinhados à **ISO 19650** e **NBR 15965**, com auxílio de IA.
+2. **Visualiza modelos IFC em 3D** diretamente no navegador.
+3. **Analisa a consistência** entre o modelo IFC e o BEP usando um LLM (ex.: o IFC tem as disciplinas que o BEP declarou? o LOD é compatível?).
 
-## 🚀 Como Funciona
-
-A plataforma foi desenhada para automatizar tarefas repetitivas e garantir a qualidade técnica do seu documento. O fluxo de trabalho principal consiste em:
-
-1. **Página Inicial (Home)**: Um ponto de partida contendo um tutorial em vídeo prático para apresentar os conceitos e a utilização da ferramenta.
-2. **Importação Inteligente de EIR (PDF)**: Você pode enviar o PDF de um Edital ou EIR (Exchange Information Requirements). A IA do Gemini lê o documento e auto-preenche as principais informações do projeto (dados do cliente, equipe, prazos, etc).
-3. **Editor de BEP Modular**: O documento é gerado em blocos modulares. Você pode reorganizá-los livremente arrastando e soltando.
-   - **Geração por IA**: Dentro de diversos blocos (como Objetivos BIM, LOD/LOIN, Entregáveis), há botões de "Sugestão com IA" que geram tabelas e conteúdos baseados no contexto do projeto.
-   - **Refinamento Técnico**: Botões de refinamento reescrevem textos informais utilizando o jargão técnico contratual exigido pela ISO.
-   - **Validação de Over-modeling**: O bloco de LOD permite que a IA avalie se o Nível de Desenvolvimento exigido está condizente com a fase do projeto.
-4. **Gerenciamento Ágil (Kanban)**: Uma tela dedicada no formato Kanban permite gerenciar visualmente os "Principais Marcos do Projeto" definidos no escopo (A Fazer, Em Progresso, Concluído).
-5. **Exportação**: Com um clique, você exporta o documento finalizado para HTML/PDF, pronto para assinatura ou anexação em contratos.
+> ⚠️ **Protótipo para ensino.** Roda 100% no navegador e a chave de API vai embutida no
+> bundle — adequado para uso **local/aula**, **não para produção**. Cada pessoa usa a
+> própria chave. **Nunca comite o arquivo `.env`** (ele já está no `.gitignore`).
 
 ---
 
-## ✨ Funcionalidades Principais
+## 📚 Onde estão as bibliotecas?
 
-- **Extração de Dados via PDF**: Leitura local do PDF e extração estruturada de dados do Edital usando IA generativa.
-- **Sugestões Contextuais (Gemini)**: Geração de matrizes de responsabilidade, listas de softwares/hardwares e usos BIM aplicáveis.
-- **Gestão de Prazos Visual (Kanban)**: Quadro Kanban com drag-and-drop integrado automaticamente à tabela do documento BEP.
-- **Design Moderno e Responsivo**: Interface limpa (Clean UI) utilizando Tailwind CSS e animações fluidas com Framer Motion.
-- **Validação de Infraestrutura**: Verificador baseado em IA que confere se o hardware especificado "roda" o software BIM escolhido.
-- **Nenhuma Perda de Estado Local**: Uso avançado de Zustand para gerenciar milhares de propriedades do documento em tempo real na memória.
+As bibliotecas (ThatOpen, web-ifc, three.js, React…) **não são repositórios clonados**
+dentro do projeto. Elas são **dependências npm**, instaladas em **`node_modules/`** quando
+você roda `npm install`. O que controla quais bibliotecas e versões é o **`package.json`**.
 
----
+| Biblioteca | Versão | Onde fica (após `npm install`) | Para quê |
+|---|---|---|---|
+| `@thatopen/components` | 3.4.6 | `node_modules/@thatopen/components/` | Engine 3D (cena, câmera, IfcLoader) |
+| `@thatopen/components-front` | 3.4.3 | `node_modules/@thatopen/components-front/` | Recursos de frontend (Highlighter/seleção) |
+| `@thatopen/fragments` | 3.4.5 | `node_modules/@thatopen/fragments/` | Formato Fragments (modelos carregados) |
+| `@thatopen/ui` | 3.4.3 | `node_modules/@thatopen/ui/` | Componentes de UI `<bim-*>` (web components / Lit) |
+| `@thatopen/ui-obc` | 3.4.2 | `node_modules/@thatopen/ui-obc/` | Componentes de UI prontos integrados ao engine |
+| `web-ifc` | 0.0.77 | `node_modules/web-ifc/` | Parser de IFC em WebAssembly |
+| `three` | 0.184.0 | `node_modules/three/` | Motor 3D (base do ThatOpen) |
 
-## 🛠️ Tecnologias Utilizadas
+**WASM do web-ifc:** os binários `web-ifc.wasm` e `web-ifc-mt.wasm` foram copiados para a
+pasta **`public/`** e são servidos a partir da raiz (`/web-ifc.wasm`). Isso é proposital:
+carregar o WASM via CDN em runtime causava o erro `WebAssembly.instantiate ... module is
+not an object`. Se você atualizar a versão do `web-ifc`, recopie os `.wasm`:
 
-- **Frontend**: React 18, TypeScript, Vite
-- **Estilização**: Tailwind CSS, Lucide React (Ícones)
-- **Animações**: Framer Motion
-- **Gerenciamento de Estado**: Zustand
-- **Interações Drag-and-Drop**: `@dnd-kit` (Listas de blocos e Quadro Kanban)
-- **Inteligência Artificial**: Google Gen AI SDK (`@google/genai`) com o modelo `gemini-3.1-pro` / `flash`.
-- **Processamento de Arquivos**: `pdf.js` para parsing seguro de PDF no lado do cliente.
+```bash
+cp node_modules/web-ifc/web-ifc.wasm node_modules/web-ifc/web-ifc-mt.wasm public/
+```
 
----
-
-## 🏁 Como Executar Localmente
-
-Siga os passos abaixo para rodar o projeto localmente:
-
-1. **Clone o repositório** e entre na pasta:
-   ```bash
-   cd react-example
-   ```
-
-2. **Instale as dependências**:
-   ```bash
-   npm install
-   ```
-
-3. **Configuração de Variáveis de Ambiente**:
-   Crie um arquivo `.env` na raiz do projeto com a chave da API do Gemini (necessária para que o gerador de texto/PDF funcione):
-   ```env
-   GEMINI_API_KEY=sua_chave_de_api_aqui
-   ```
-
-4. **Inicie o Servidor de Desenvolvimento**:
-   ```bash
-   npm run dev
-   ```
-
-5. O aplicativo estará disponível em `http://localhost:3000`.
+> Os repositórios oficiais (caso queira estudar o código-fonte): GitHub
+> [ThatOpen/engine_components](https://github.com/ThatOpen/engine_components),
+> [ThatOpen/engine_web-ifc](https://github.com/ThatOpen/engine_web-ifc),
+> [ThatOpen/engine_ui-components](https://github.com/ThatOpen/engine_ui-components).
+> No app, porém, usamos as versões publicadas no npm — não é preciso clonar nada.
 
 ---
 
-## 📄 Notas Adicionais sobre a Arquitetura
+## 🏁 Como executar (passo a passo)
 
-- A lógica de inteligência artificial está isolada em `/src/lib/gemini.ts`. Todo o "prompt engineering" (papel do *BIM Specialist*, formatações em JSON) acontece nesse arquivo.
-- O controle global dos campos do BEP habita em `/src/store/bepStore.ts`, projetado de modo flexível onde cada "bloco" define seu próprio esquema dinâmico em `block.content`.
-- Os blocos da interface encontram-se em `/src/components/blocks/` e são orquestrados por `Editor.tsx`.
+Pré-requisito: **Node.js 20+**.
 
-Desenvolvido para revolucionar a documentação técnica no ambiente BIM!
+```bash
+# 1. Instale as dependências (cria a pasta node_modules/)
+npm install
+
+# 2. Configure a chave de IA
+cp .env.example .env
+#   edite .env e preencha VITE_GROQ_API_KEY (https://console.groq.com/keys)
+
+# 3. Rode em desenvolvimento
+npm run dev
+#   abra http://localhost:3000
+```
+
+| Comando | O que faz |
+|---|---|
+| `npm run dev` | servidor de desenvolvimento (porta 3000) |
+| `npm run lint` | checagem de tipos (`tsc --noEmit`) |
+| `npm run build` | build de produção em `dist/` |
+| `npm run preview` | serve o build de produção |
+
+> ⚠️ **Modelo de IA:** use um modelo de **texto/chat** (ex.: `llama-3.3-70b-versatile`).
+> Modelos `whisper-*` são de **transcrição de áudio** e **não funcionam** para gerar/analisar texto.
+
+---
+
+## ✨ Funcionalidades
+
+- **Editor de BEP modular** — blocos arrastáveis (dados gerais, equipe, matriz de
+  responsabilidades, entregáveis, usos BIM, LOD/LOIN, cronograma, papéis…).
+- **Importar EIR (PDF)** — extrai o texto do edital (pdf.js) e auto-preenche o BEP com IA.
+- **Sugestões e refino com IA** dentro dos blocos.
+- **Kanban** dos marcos do projeto (drag-and-drop).
+- **Visualizador IFC 3D** — carregar arquivo local, navegar, selecionar elementos, enquadrar.
+- **Análise de Consistência IFC × BEP** — relatório (ok / alerta / erro por item) gerado por IA.
+- **Salvar/Carregar projeto** em `.json` + persistência automática (localStorage).
+- **Exportação** do documento para HTML/PDF.
+
+---
+
+## 🗂️ Estrutura do projeto
+
+```
+BEP.ai_beta/
+├─ public/                      # arquivos servidos na raiz
+│  ├─ web-ifc.wasm              # parser IFC (WASM) — NÃO remover
+│  └─ web-ifc-mt.wasm
+├─ src/
+│  ├─ main.tsx                  # ponto de entrada (monta React + ErrorBoundary)
+│  ├─ App.tsx                   # layout, troca de telas, salvar/carregar projeto
+│  ├─ index.css                 # estilos (Tailwind)
+│  ├─ vite-env.d.ts             # tipos das variáveis VITE_*
+│  │
+│  ├─ store/
+│  │  └─ bepStore.ts            # estado global (Zustand + persist no localStorage)
+│  │
+│  ├─ lib/
+│  │  ├─ ai/                    # 🧠 camada de IA agnóstica de provedor
+│  │  │  ├─ types.ts            # interface AIProvider
+│  │  │  ├─ config.ts           # provedor ativo + modelos (1 lugar p/ trocar)
+│  │  │  ├─ index.ts            # registro de provedores + parseJSON
+│  │  │  └─ providers/
+│  │  │     ├─ groq.ts          # Groq (padrão, compatível com OpenAI)
+│  │  │     └─ gemini.ts        # Google Gemini (alternativa)
+│  │  ├─ gemini.ts              # prompts do BEP (delegam para a camada ai/)
+│  │  ├─ pdf.ts                 # extração de texto de PDF (pdf.js)
+│  │  ├─ ifc/
+│  │  │  ├─ viewer.ts           # visualizador 3D (ThatOpen Engine)
+│  │  │  └─ extract.ts          # extração de dados do IFC (web-ifc puro)
+│  │  ├─ analysis.ts            # resume o BEP + pede análise IFC×BEP à IA
+│  │  └─ export.ts              # exportação PDF (jsPDF)
+│  │
+│  └─ components/
+│     ├─ ErrorBoundary.tsx      # captura erros de render
+│     ├─ layout/
+│     │  ├─ Sidebar.tsx         # navegação (Início/Editor/Kanban/IFC)
+│     │  ├─ Home.tsx            # tela inicial
+│     │  ├─ Editor.tsx          # orquestra os blocos do BEP
+│     │  ├─ KanbanBoard.tsx     # quadro Kanban dos marcos
+│     │  └─ IfcAnalysis.tsx     # tela IFC: viewer 3D + relatório (lazy-loaded)
+│     ├─ blocks/                # os blocos do documento BEP
+│     └─ ui/                    # botões de IA (sugerir/refinar)
+├─ .env.example                 # modelo de variáveis de ambiente
+├─ package.json                 # dependências e scripts
+└─ vite.config.ts               # config do Vite (injeta as chaves de API)
+```
+
+---
+
+## 🧠 Como funciona a IA (camada agnóstica)
+
+Toda chamada de IA passa por `src/lib/ai/`. Isso permite **trocar de modelo/provedor em um
+único lugar**, sem mexer no resto do app.
+
+- `config.ts` → `ACTIVE_PROVIDER` define o provedor (padrão `'groq'`) e os modelos.
+- `providers/groq.ts` e `providers/gemini.ts` implementam a interface `AIProvider`.
+- `gemini.ts` (apesar do nome) só monta os **prompts** do BEP e chama `aiProvider`.
+
+**Trocar o modelo:** edite `VITE_GROQ_MODEL` no `.env`.
+**Trocar o provedor:** mude `ACTIVE_PROVIDER` em `config.ts`.
+**Adicionar um novo provedor (ex.: Claude):** crie `providers/claude.ts` implementando
+`AIProvider`, registre-o em `index.ts` e aponte `ACTIVE_PROVIDER` para ele.
+
+---
+
+## 🧱 Como funciona o IFC
+
+- **`viewer.ts`** monta a cena 3D com o ThatOpen Engine (SimpleScene/SimpleCamera/
+  SimpleRenderer), carrega o arquivo via `IfcLoader` (WASM local de `public/`) e enquadra
+  a câmera com `fitToSphere`. Inclui Highlighter (clique para selecionar).
+- **`extract.ts`** lê o mesmo arquivo com o `web-ifc` puro e gera um **resumo compacto**
+  (projeto, schema, pavimentos, contagem por categoria, disciplinas) — propositalmente
+  separado do viewer para a análise não depender da API 3D.
+- **`analysis.ts`** junta esse resumo com um resumo do BEP e pede à IA um relatório de
+  consistência estruturado.
+
+---
+
+## 🔄 Fluxo de uso em aula
+
+1. **Editor** → importe um EIR (PDF) ou preencha os blocos (gera com IA via Groq).
+2. **IFC / Análise** → "Carregar IFC" (arquivo próprio) ou **"Carregar exemplo"** (modelo
+   `public/exemplo.ifc` que já vem no projeto) para abrir um modelo em 3D + ver o resumo.
+3. **"Analisar consistência"** → a IA compara IFC × BEP e gera o relatório.
+4. **Salvar** o projeto em `.json` para reabrir/compartilhar depois.
+
+---
+
+## 🛠️ Stack
+
+- **Frontend:** React 19 + TypeScript + Vite 6
+- **Estilo:** Tailwind CSS · ícones Lucide · animações Motion
+- **Estado:** Zustand (com `persist` em localStorage)
+- **IA:** camada própria em `src/lib/ai/` — padrão **Groq** (compatível com OpenAI)
+- **IFC / 3D:** ThatOpen Engine + web-ifc (WASM) + three.js
+- **PDF:** pdf.js (leitura) · jsPDF / html-to-image (exportação)
+
+---
+
+## ⚠️ Segurança
+
+- A chave de API é embutida no bundle do navegador (limitação aceita no protótipo).
+  Para **produção**, use um backend que faça proxy das chamadas de IA.
+- `.env` está no `.gitignore`. **Se uma chave vazar, revogue-a imediatamente** no console
+  do provedor e gere outra.

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 
 export type BlockType = 
@@ -35,9 +36,10 @@ export interface Milestone {
 interface BEPState {
   blocks: BlockData[];
   isoContext: string; // Store extracted ISO text for context
-  activeView: 'home' | 'editor' | 'kanban';
-  setActiveView: (view: 'home' | 'editor' | 'kanban') => void;
+  activeView: 'home' | 'editor' | 'kanban' | 'ifc';
+  setActiveView: (view: 'home' | 'editor' | 'kanban' | 'ifc') => void;
   setIsoContext: (text: string) => void;
+  loadProject: (data: { blocks: BlockData[]; isoContext?: string }) => void;
   addBlock: (type: BlockType) => void;
   removeBlock: (id: string) => void;
   updateBlock: (id: string, data: Partial<BlockData>) => void;
@@ -47,7 +49,9 @@ interface BEPState {
   expandAllBlocks: () => void;
 }
 
-export const useBEPStore = create<BEPState>((set) => ({
+export const useBEPStore = create<BEPState>()(
+  persist(
+    (set) => ({
   blocks: [
     {
       id: '1',
@@ -214,6 +218,8 @@ export const useBEPStore = create<BEPState>((set) => ({
   activeView: 'home',
   setActiveView: (view) => set({ activeView: view }),
   setIsoContext: (text) => set({ isoContext: text }),
+  loadProject: (data) =>
+    set({ blocks: data.blocks, isoContext: data.isoContext ?? '' }),
   addBlock: (type) => set((state) => {
     const titles: Record<BlockType, string> = {
       general_project: '1. INFORMAÇÕES GERAIS DO PROJETO',
@@ -263,4 +269,12 @@ export const useBEPStore = create<BEPState>((set) => ({
   expandAllBlocks: () => set((state) => ({
     blocks: state.blocks.map((b) => ({ ...b, isExpanded: true }))
   })),
-}));
+    }),
+    {
+      name: 'bep-ai-store',
+      version: 1,
+      // Persist the document and extracted context; keep transient UI view out.
+      partialize: (state) => ({ blocks: state.blocks, isoContext: state.isoContext }),
+    }
+  )
+);

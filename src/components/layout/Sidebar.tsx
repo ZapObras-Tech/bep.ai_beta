@@ -1,6 +1,6 @@
 import React from 'react';
 import { useBEPStore } from '../../store/bepStore';
-import { Plus, FileText, Layers, Ruler, Server, Calendar, Users, ListChecks, Paperclip, BookOpen, ArrowRight, LayoutDashboard, Settings, Home as HomeIcon } from 'lucide-react';
+import { Plus, FileText, Layers, Ruler, Server, Calendar, Users, ListChecks, Paperclip, BookOpen, ArrowRight, LayoutDashboard, Settings, Home as HomeIcon, Box } from 'lucide-react';
 import { motion } from 'motion/react';
 import clsx from 'clsx';
 
@@ -85,6 +85,18 @@ export function Sidebar() {
         >
           <LayoutDashboard className="w-4 h-4 shrink-0" />
           <span>KANBAN</span>
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.02, x: 4 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => setActiveView('ifc')}
+          className={clsx(
+            "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors group text-left",
+            activeView === 'ifc' ? "text-orange-600 bg-orange-50" : "text-slate-600 hover:text-orange-600 hover:bg-orange-50"
+          )}
+        >
+          <Box className="w-4 h-4 shrink-0" />
+          <span>IFC / Análise</span>
         </motion.button>
       </div>
 
