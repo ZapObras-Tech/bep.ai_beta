@@ -1,5 +1,11 @@
 # Plano: Preenchimento robusto do BEP (multi-projeto · multi-documento · geração por seção)
 
+> ⚠️ **Documento histórico (superado).** Este plano foi escrito quando a IA usava a
+> **Groq** (chave `VITE_GROQ_API_KEY`) e previa um backend FastAPI próprio. O app migrou
+> depois para o **NotebookLM** como único provedor, via ponte local (`/api/notebooklm`),
+> **sem chave de API** e sem backend separado. As referências a `groq.ts`, `VITE_GROQ_*`,
+> `VITE_API_URL` e ao backend Python abaixo são do plano antigo — mantidas só como registro.
+
 ## Context
 
 O preenchimento automático do BEP varia muito com o mesmo documento. Duas causas

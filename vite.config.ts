@@ -4,8 +4,8 @@ import path from 'path';
 import {defineConfig} from 'vite';
 import {notebooklmBridge} from './vite-plugin-notebooklm.mjs';
 
-// API keys are read in the app via import.meta.env.VITE_* (Vite-native), so no
-// `define` shim is needed. Set VITE_GROQ_API_KEY etc. in your .env.
+// No API keys: the app's only AI provider is NotebookLM, reached via the local
+// bridge plugin below (/api/notebooklm), which shells out to the `notebooklm` CLI.
 export default defineConfig(() => {
   return {
     plugins: [react(), tailwindcss(), notebooklmBridge()],

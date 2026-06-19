@@ -6,9 +6,9 @@ O **BEP.ai** é um protótipo web educacional que faz três coisas:
 2. **Visualiza modelos IFC em 3D** diretamente no navegador.
 3. **Analisa a consistência** entre o modelo IFC e o BEP usando um LLM (ex.: o IFC tem as disciplinas que o BEP declarou? o LOD é compatível?).
 
-> ⚠️ **Protótipo para ensino.** Roda 100% no navegador e a chave de API vai embutida no
-> bundle — adequado para uso **local/aula**, **não para produção**. Cada pessoa usa a
-> própria chave. **Nunca comite o arquivo `.env`** (ele já está no `.gitignore`).
+> ⚠️ **Protótipo para ensino.** A IA roda 100% no **NotebookLM**, via ponte local
+> embutida no dev server do Vite. **Não há chave de API** — a autenticação é o login
+> Google do próprio NotebookLM (CLI `notebooklm`). Adequado para uso **local/aula**.
 
 ---
 
@@ -47,20 +47,23 @@ cp node_modules/web-ifc/web-ifc.wasm node_modules/web-ifc/web-ifc-mt.wasm public
 
 ## 🏁 Como executar (passo a passo)
 
-Pré-requisito: **Node.js 20+**.
+Pré-requisitos: **Node.js 20+** e **Python 3** (para o CLI do NotebookLM).
 
 ```bash
-# 1. Instale as dependências (cria a pasta node_modules/)
-npm install
+# 1. Instale tudo (npm + CLI notebooklm-py + Chromium do Playwright)
+npm run setup
 
-# 2. Configure a chave de IA
-cp .env.example .env
-#   edite .env e preencha VITE_GROQ_API_KEY (https://console.groq.com/keys)
-
-# 3. Rode em desenvolvimento
+# 2. Rode em desenvolvimento
 npm run dev
 #   abra http://localhost:3000
+
+# 3. Conecte ao NotebookLM
+#   clique no botão "NotebookLM" no topo do app → faz login Google no Chromium
+#   e escolha o notebook (alternativa por terminal: npm run notebooklm:login)
 ```
+
+> Não há chave de IA: a fonte (edital/EIR/normas) vive dentro do notebook conectado
+> e o NotebookLM fundamenta as respostas nas próprias fontes.
 
 | Comando | O que faz |
 |---|---|
@@ -68,9 +71,9 @@ npm run dev
 | `npm run lint` | checagem de tipos (`tsc --noEmit`) |
 | `npm run build` | build de produção em `dist/` |
 | `npm run preview` | serve o build de produção |
-
-> ⚠️ **Modelo de IA:** use um modelo de **texto/chat** (ex.: `llama-3.3-70b-versatile`).
-> Modelos `whisper-*` são de **transcrição de áudio** e **não funcionam** para gerar/analisar texto.
+| `npm run setup` | instala deps + CLI do NotebookLM + Chromium |
+| `npm run notebooklm:login` | login Google no NotebookLM (abre o Chromium) |
+| `npm run notebooklm:check` | verifica CLI instalado + sessão autenticada |
 
 ---
 
@@ -99,7 +102,7 @@ BEP.ai_beta/
 │  ├─ main.tsx                  # ponto de entrada (monta React + ErrorBoundary)
 │  ├─ App.tsx                   # layout, troca de telas, salvar/carregar projeto
 │  ├─ index.css                 # estilos (Tailwind)
-│  ├─ vite-env.d.ts             # tipos das variáveis VITE_*
+│  ├─ vite-env.d.ts             # tipos do Vite (sem variáveis de IA)
 │  │
 │  ├─ store/
 │  │  └─ bepStore.ts            # estado global (Zustand + persist no localStorage)
@@ -107,15 +110,14 @@ BEP.ai_beta/
 │  ├─ lib/
 │  │  ├─ ai/                    # 🧠 camada de IA agnóstica de provedor
 │  │  │  ├─ types.ts            # interface AIProvider
-│  │  │  ├─ config.ts           # provedor ativo + modelos (1 lugar p/ trocar)
+│  │  │  ├─ config.ts           # provedor ativo (notebooklm)
 │  │  │  ├─ index.ts            # registro de provedores + parseJSON
 │  │  │  └─ providers/
-│  │  │     ├─ groq.ts          # Groq (padrão, compatível com OpenAI)
-│  │  │     └─ gemini.ts        # Google Gemini (alternativa)
+│  │  │     └─ notebooklm.ts    # NotebookLM via ponte local (/api/notebooklm)
 │  │  ├─ gemini.ts              # prompts do BEP (delegam para a camada ai/)
 │  │  ├─ pdf.ts                 # extração de texto de PDF (pdf.js)
 │  │  ├─ ifc/
-│  │  │  ├─ viewer.ts           # visualizador 3D (ThatOpen Engine)
+│  │  │  ├─ app.ts              # visualizador 3D + painel de análise (ThatOpen)
 │  │  │  └─ extract.ts          # extração de dados do IFC (web-ifc puro)
 │  │  ├─ analysis.ts            # resume o BEP + pede análise IFC×BEP à IA
 │  │  └─ export.ts              # exportação PDF (jsPDF)
@@ -130,34 +132,35 @@ BEP.ai_beta/
 │     │  └─ IfcAnalysis.tsx     # tela IFC: viewer 3D + relatório (lazy-loaded)
 │     ├─ blocks/                # os blocos do documento BEP
 │     └─ ui/                    # botões de IA (sugerir/refinar)
-├─ .env.example                 # modelo de variáveis de ambiente
+├─ vite-plugin-notebooklm.mjs   # ponte local /api/notebooklm (chama o CLI)
 ├─ package.json                 # dependências e scripts
-└─ vite.config.ts               # config do Vite (injeta as chaves de API)
+└─ vite.config.ts               # config do Vite + plugin da ponte NotebookLM
 ```
 
 ---
 
 ## 🧠 Como funciona a IA (camada agnóstica)
 
-Toda chamada de IA passa por `src/lib/ai/`. Isso permite **trocar de modelo/provedor em um
-único lugar**, sem mexer no resto do app.
+Toda chamada de IA passa por `src/lib/ai/`. Isso permite **trocar de provedor em um único
+lugar**, sem mexer no resto do app.
 
-- `config.ts` → `ACTIVE_PROVIDER` define o provedor (padrão `'groq'`) e os modelos.
-- `providers/groq.ts` e `providers/gemini.ts` implementam a interface `AIProvider`.
+- `config.ts` → `ACTIVE_PROVIDER` define o provedor (atual: `'notebooklm'`).
+- `providers/notebooklm.ts` implementa a interface `AIProvider`: faz `fetch` na ponte
+  local `/api/notebooklm` (plugin do Vite em `vite-plugin-notebooklm.mjs`), que chama o
+  CLI `notebooklm`. Mesma origem do app → sem CORS, sem 2º processo, sem chave.
 - `gemini.ts` (apesar do nome) só monta os **prompts** do BEP e chama `aiProvider`.
 
-**Trocar o modelo:** edite `VITE_GROQ_MODEL` no `.env`.
-**Trocar o provedor:** mude `ACTIVE_PROVIDER` em `config.ts`.
 **Adicionar um novo provedor (ex.: Claude):** crie `providers/claude.ts` implementando
-`AIProvider`, registre-o em `index.ts` e aponte `ACTIVE_PROVIDER` para ele.
+`AIProvider`, registre-o em `index.ts` e aponte `ACTIVE_PROVIDER` para ele em `config.ts`.
 
 ---
 
 ## 🧱 Como funciona o IFC
 
-- **`viewer.ts`** monta a cena 3D com o ThatOpen Engine (SimpleScene/SimpleCamera/
+- **`ifc/app.ts`** monta a cena 3D com o ThatOpen Engine (SimpleScene/SimpleCamera/
   SimpleRenderer), carrega o arquivo via `IfcLoader` (WASM local de `public/`) e enquadra
-  a câmera com `fitToSphere`. Inclui Highlighter (clique para selecionar).
+  a câmera com `fitToSphere`. Inclui Highlighter (clique para selecionar) e o painel de
+  Análise de Consistência BEP × IFC.
 - **`extract.ts`** lê o mesmo arquivo com o `web-ifc` puro e gera um **resumo compacto**
   (projeto, schema, pavimentos, contagem por categoria, disciplinas) — propositalmente
   separado do viewer para a análise não depender da API 3D.
@@ -168,7 +171,7 @@ Toda chamada de IA passa por `src/lib/ai/`. Isso permite **trocar de modelo/prov
 
 ## 🔄 Fluxo de uso em aula
 
-1. **Editor** → importe um EIR (PDF) ou preencha os blocos (gera com IA via Groq).
+1. **Editor** → importe um EIR (PDF) ou preencha os blocos (gera com IA via NotebookLM).
 2. **IFC / Análise** → "Carregar IFC" (arquivo próprio) ou **"Carregar exemplo"** (modelo
    `public/exemplo.ifc` que já vem no projeto) para abrir um modelo em 3D + ver o resumo.
 3. **"Analisar consistência"** → a IA compara IFC × BEP e gera o relatório.
@@ -181,7 +184,7 @@ Toda chamada de IA passa por `src/lib/ai/`. Isso permite **trocar de modelo/prov
 - **Frontend:** React 19 + TypeScript + Vite 6
 - **Estilo:** Tailwind CSS · ícones Lucide · animações Motion
 - **Estado:** Zustand (com `persist` em localStorage)
-- **IA:** camada própria em `src/lib/ai/` — padrão **Groq** (compatível com OpenAI)
+- **IA:** camada própria em `src/lib/ai/` — provedor **NotebookLM** via ponte local (CLI)
 - **IFC / 3D:** ThatOpen Engine + web-ifc (WASM) + three.js
 - **PDF:** pdf.js (leitura) · jsPDF / html-to-image (exportação)
 
@@ -189,7 +192,8 @@ Toda chamada de IA passa por `src/lib/ai/`. Isso permite **trocar de modelo/prov
 
 ## ⚠️ Segurança
 
-- A chave de API é embutida no bundle do navegador (limitação aceita no protótipo).
-  Para **produção**, use um backend que faça proxy das chamadas de IA.
-- `.env` está no `.gitignore`. **Se uma chave vazar, revogue-a imediatamente** no console
-  do provedor e gere outra.
+- **Não há chave de API** no app. A autenticação da IA é o login Google do NotebookLM,
+  feito pelo CLI `notebooklm` (cookies de sessão ficam no perfil local do Chromium).
+- A ponte `/api/notebooklm` só existe no **dev server** do Vite (`apply: 'serve'`) e roda
+  na própria máquina. Não exponha o dev server na rede pública.
+- Encerrar a sessão: `npm run notebooklm:logout`.

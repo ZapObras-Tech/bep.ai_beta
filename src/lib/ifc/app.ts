@@ -10,6 +10,10 @@ import { useBEPStore } from '../../store/bepStore';
 let buiInitialized = false;
 
 export interface IfcApp {
+  /** Elemento raiz (bim-grid) — anexado/destacado do host pelo React sem destruir o estado. */
+  root: HTMLElement;
+  /** Recalcula o tamanho do renderer/câmera após reanexar ao DOM. */
+  resize(): void;
   dispose(): void;
 }
 
@@ -25,7 +29,7 @@ type ReportState =
  * tabela de propriedades, toolbar de vistas e drag-and-drop — somando um painel de
  * Análise de Consistência BEP × IFC. Tudo com web components do ThatOpen (@thatopen/ui).
  */
-export async function mountIfcApp(host: HTMLElement): Promise<IfcApp> {
+export async function mountIfcApp(): Promise<IfcApp> {
   if (!buiInitialized) {
     BUI.Manager.init();
     buiInitialized = true;
@@ -341,7 +345,8 @@ export async function mountIfcApp(host: HTMLElement): Promise<IfcApp> {
     },
   };
   (app as any).layout = 'main';
-  host.appendChild(app);
+  // O React (IfcAnalysis) anexa/destaca este elemento do host para preservar o
+  // estado entre trocas de aba — por isso não anexamos aqui.
 
   // ── Drag-and-drop de arquivos IFC ───────────────────────────────────────
   viewport.addEventListener('dragover', (e) => e.preventDefault());
@@ -355,13 +360,18 @@ export async function mountIfcApp(host: HTMLElement): Promise<IfcApp> {
   });
 
   return {
+    root: app,
+    resize() {
+      rendererComponent.resize();
+      cameraComponent.updateAspect();
+    },
     dispose() {
       try {
         components.dispose();
       } catch {
         /* ignore */
       }
-      if (host.contains(app)) host.removeChild(app);
+      app.remove();
     },
   };
 }
